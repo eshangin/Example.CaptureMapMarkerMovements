@@ -54,7 +54,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         "uEeFymAssAkdAmhAyTcVkFeEoKiH}l@kp@wg@sj@ku@ey@uh@kj@}EsFmG}Jk^_r@_f@m",
         "~@ym@yjA??a@cFd@kBrCgDbAUnAcBhAyAdk@et@??kF}D??OL" });
 
-            return View();
+            return View(GetData());
         }
 
         public ActionResult Index()
