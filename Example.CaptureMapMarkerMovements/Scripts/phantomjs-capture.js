@@ -1,12 +1,6 @@
 ﻿var system = require('system');
-var args = system.args;
 
-var outputPath = args[1];
-
-if (!outputPath) {
-    console.log('fail: output path not specified');
-    phantom.exit();
-}
+var appArgs = getArgs();
 
 var page = require("webpage").create();
 page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36';
@@ -18,7 +12,7 @@ var height = 700;
 page.viewportSize = { width: width, height: height };
 
 console.log('try open url');
-page.open("http://localhost:54473/Home/RenderMap", function (status) {
+page.open(appArgs.mapUrl, function (status) {
 
     console.log('Open Page Status: ' + status);
 
@@ -57,7 +51,7 @@ page.open("http://localhost:54473/Home/RenderMap", function (status) {
                 });
                 try {
                     page.clipRect = { top: 0, left: 0, width: width, height: height };
-                    page.render(outputPath + "/capture" + pad(frameIndex, 9) + ".png", { format: "png", quality: '30' });
+                    page.render(appArgs.outputPath + "/capture" + pad(frameIndex, 9) + ".png", { format: "png", quality: '30' });
                     console.log('Captured frame ' + frameIndex);
                     frameIndex++;
                 } catch (rendererr) {
@@ -84,6 +78,28 @@ page.open("http://localhost:54473/Home/RenderMap", function (status) {
     }
     //page.clipRect = {top: 0, left: 0, width: width, height: height};
 });
+
+function getArgs() {
+    var args = system.args;
+
+    var outputPath = args[1];
+    var mapUrl = args[2];
+
+    if (!outputPath) {
+        console.log('fail: output path not specified');
+        phantom.exit();
+    }
+
+    if (!mapUrl) {
+        console.log('fail: map URL not specified');
+        phantom.exit();
+    }
+
+    return {
+        outputPath: outputPath,
+        mapUrl: mapUrl
+    };
+}
 
 function pad(num, size) {
     var s = num + "";

@@ -118,13 +118,14 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         private string DoCapture(string uniqueId)
         {
             string capturesPath = Server.MapPath($"~/tmp/captures/{uniqueId}");
+            string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { }, "http");
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
             {
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = $"{Server.MapPath("~/Scripts/phantomjs-capture.js")} {capturesPath}",
+                Arguments = $"{Server.MapPath("~/Scripts/phantomjs-capture.js")} {capturesPath} {mapUrlPath}",
             };
 
             using (Process p = Process.Start(info))
