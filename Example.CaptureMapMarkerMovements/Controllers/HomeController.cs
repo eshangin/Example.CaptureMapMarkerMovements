@@ -77,7 +77,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             string videoPath = MakeVideo(uniqueId, capturesPath);
             Debug.WriteLine(videoPath);
 
-            return View();
+            return File(videoPath, "video/mp4", "output.mp4");
         }
 
         private string MakeVideo(string uniqueId, string capturesPath)
