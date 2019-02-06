@@ -69,7 +69,7 @@ page.open(appArgs.mapUrl, function (status) {
                 break;
 
             default:
-                console.log('map not loaded yet', new Date());
+                console.log('map not loaded yet', formatDate(new Date()));
                 setTimeout(function () {
                     trackMapStates();
                 }, 1000);
@@ -105,4 +105,14 @@ function pad(num, size) {
     var s = num + "";
     while (s.length < size) s = "0" + s;
     return s;
+}
+
+function formatDate(m) {
+    return m.getUTCFullYear() + "/" +
+        ("0" + (m.getUTCMonth() + 1)).slice(-2) + "/" +
+        ("0" + m.getUTCDate()).slice(-2) + " " +
+        ("0" + m.getUTCHours()).slice(-2) + ":" +
+        ("0" + m.getUTCMinutes()).slice(-2) + ":" +
+        ("0" + m.getUTCSeconds()).slice(-2) + ":" +
+        m.getUTCMilliseconds();
 }
