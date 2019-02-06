@@ -11,15 +11,20 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult StartProcessing()
+        public ActionResult StartProcessing(string videoId)
         {
-            string videoId = Guid.NewGuid().ToString();
             LogInfo(videoId, $"PROCESS {videoId}");
             string capturesPath = DoCapture(videoId);
             string videoPath = MakeVideo(videoId, capturesPath);
             LogInfo(videoId, videoPath);
 
-            return Json(new { videoId });
+            return Json(new { videoId = videoId });
+        }
+
+        [HttpPost]
+        public ActionResult GetLog(string videoId)
+        {
+            return Json(new { log = ReadLog(videoId)?.Replace(Environment.NewLine, "<br>") });
         }
 
         public ActionResult DownloadVideo(string id)
@@ -174,10 +179,17 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 
         private void LogInfo(string videoId, string text)
         {
-            Session[$"processing-{videoId}"] = Session[$"processing-{videoId}"] == null
+            System.Web.HttpContext.Current.Application.Lock();
+            System.Web.HttpContext.Current.Application[$"processing-{videoId}"] = System.Web.HttpContext.Current.Application[$"processing-{videoId}"] == null
                 ? text
-                : Session[$"processing-{videoId}"] + Environment.NewLine + text;
+                : System.Web.HttpContext.Current.Application[$"processing-{videoId}"] + Environment.NewLine + text;
+            System.Web.HttpContext.Current.Application.UnLock();
             Debug.WriteLine(text);
+        }
+
+        private string ReadLog(string videoId)
+        {
+            return System.Web.HttpContext.Current.Application[$"processing-{videoId}"] as string;
         }
 
         private IEnumerable<Waypoint> GetData()
