@@ -13,13 +13,13 @@ namespace Example.CaptureMapMarkerMovements.Controllers
     {
         public ActionResult StartProcessing()
         {
-            string uniqueId = Guid.NewGuid().ToString();
-            Debug.WriteLine($"PROCESS {uniqueId}");
-            string capturesPath = DoCapture(uniqueId);
-            string videoPath = MakeVideo(uniqueId, capturesPath);
-            Debug.WriteLine(videoPath);
+            string videoId = Guid.NewGuid().ToString();
+            LogInfo(videoId, $"PROCESS {videoId}");
+            string capturesPath = DoCapture(videoId);
+            string videoPath = MakeVideo(videoId, capturesPath);
+            LogInfo(videoId, videoPath);
 
-            return Json(new { videoId = uniqueId });
+            return Json(new { videoId });
         }
 
         public ActionResult DownloadVideo(string id)
@@ -88,18 +88,18 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         [HttpPost]
         public ActionResult Index(FormCollection form)
         {
-            string uniqueId = Guid.NewGuid().ToString();
-            Debug.WriteLine($"PROCESS {uniqueId}");
-            string capturesPath = DoCapture(uniqueId);
-            string videoPath = MakeVideo(uniqueId, capturesPath);
-            Debug.WriteLine(videoPath);
+            string videoId = Guid.NewGuid().ToString();
+            LogInfo(videoId, $"PROCESS {videoId}");
+            string capturesPath = DoCapture(videoId);
+            string videoPath = MakeVideo(videoId, capturesPath);
+            LogInfo(videoId, videoPath);
 
             return File(videoPath, "video/mp4", "output.mp4");
         }
 
-        private string MakeVideo(string uniqueId, string capturesPath)
+        private string MakeVideo(string videoId, string capturesPath)
         {
-            string videoPath = GetVideoPath(uniqueId);
+            string videoPath = GetVideoPath(videoId);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/ffmpeg.exe"))
             {
                 UseShellExecute = false,
@@ -113,21 +113,21 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             {
                 using (Process p = Process.Start(info))
                 {
-                    Debug.WriteLine(p.StandardError.ReadToEnd());
+                    LogInfo(videoId, p.StandardError.ReadToEnd());
                     p.WaitForExit();
                 }
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                LogInfo(videoId, e.Message);
             }
 
             return videoPath;
         }
 
-        private string GetVideoPath(string uniqueId)
+        private string GetVideoPath(string videoId)
         {
-            return Server.MapPath($"~/tmp/{uniqueId}.mp4");
+            return Server.MapPath($"~/tmp/{videoId}.mp4");
         }
 
         private string CreateTempFolder()
@@ -137,9 +137,9 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return tempFolder;
         }
 
-        private string DoCapture(string uniqueId)
+        private string DoCapture(string videoId)
         {
-            string capturesPath = Server.MapPath($"~/tmp/captures/{uniqueId}");
+            string capturesPath = Server.MapPath($"~/tmp/captures/{videoId}");
             string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { }, Request.Url.Scheme);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
             {
@@ -155,7 +155,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                 string output;
                 while ((output = p.StandardOutput.ReadLine()) != null)
                 {
-                    Debug.WriteLine(output);
+                    LogInfo(videoId, output);
                     if (output.Contains("done"))
                     {
                         break;
@@ -170,6 +170,14 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             }
 
             return capturesPath;
+        }
+
+        private void LogInfo(string videoId, string text)
+        {
+            Session[$"processing-{videoId}"] = Session[$"processing-{videoId}"] == null
+                ? text
+                : Session[$"processing-{videoId}"] + Environment.NewLine + text;
+            Debug.WriteLine(text);
         }
 
         private IEnumerable<Waypoint> GetData()
