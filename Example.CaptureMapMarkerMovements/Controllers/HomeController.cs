@@ -357,9 +357,9 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                    let items = l.Split(',')
                    select new Waypoint()
                    {
-                       Lat = items[9],
-                       Lng = items[10],
-                       Speed = items[7],
+                       Lat = Convert.ToDecimal(items[9]),
+                       Lng = Convert.ToDecimal(items[10]),
+                       Speed = Convert.ToDecimal(items[7]),
                        Date = items[6]
                    };
         }

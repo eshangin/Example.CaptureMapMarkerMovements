@@ -7,9 +7,9 @@ namespace Example.CaptureMapMarkerMovements.Models
 {
     public class Waypoint
     {
-        public string Lat { get; set; }
-        public string Lng { get; set; }
-        public string Speed { get; set; }
+        public decimal Lat { get; set; }
+        public decimal Lng { get; set; }
+        public decimal Speed { get; set; }
         public string Date { get; set; }
     }
 }
