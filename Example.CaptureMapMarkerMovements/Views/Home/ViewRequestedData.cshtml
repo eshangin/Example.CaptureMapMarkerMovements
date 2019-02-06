@@ -98,31 +98,30 @@
 
         // setting zoom so layers fit in map window as suggested in https://gis.stackexchange.com/questions/150634/openlayers-3-setting-zoom-so-layers-fit-in-map-window/192950
         setTimeout(function () {
-            return;
             var extent = {
-                maxLng: Math.max(...wpOrig.map(function (item) {
+                maxLng: Math.max(...wp.map(function (item) {
                     return item[0];
                 })),
-                minLng: Math.min(...wpOrig.map(function (item) {
+                minLng: Math.min(...wp.map(function (item) {
                     return item[0];
                 })),
-                maxLat: Math.max(...wpOrig.map(function (item) {
+                maxLat: Math.max(...wp.map(function (item) {
                     return item[1];
                 })),
-                minLat: Math.max(...wpOrig.map(function (item) {
+                minLat: Math.max(...wp.map(function (item) {
                     return item[1];
                 }))
             };
-            var feature = wpline.getFeatures()[0];
-            var polygon = feature.getGeometry();
-            console.log(polygon);
-            view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat], { nearest: true });
-            return;
-            //var extent = vectorLineLayer.getSource().getExtent();
-            //console.log(maxLng)
-            console.log(extent);
-            //map.getView().fit(extent, map.getSize());
-            map.getView().fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat], map.getSize());
+            //var feature = wpline.getFeatures()[0];
+            //var polygon = feature.getGeometry();
+            //console.log(polygon);
+            view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat]);
+            //return;
+            ////var extent = vectorLineLayer.getSource().getExtent();
+            ////console.log(maxLng)
+            //console.log(extent);
+            ////map.getView().fit(extent, map.getSize());
+            //map.getView().fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat], map.getSize());
         }, 1000)
 
     </script>
