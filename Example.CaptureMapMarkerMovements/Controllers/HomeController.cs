@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -57,6 +59,87 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         public ActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        public ActionResult Index(FormCollection form)
+        {
+            string uniqueId = Guid.NewGuid().ToString();
+            Debug.WriteLine($"PROCESS {uniqueId}");
+            string capturesPath = DoCapture(uniqueId);
+            string videoPath = MakeVideo(uniqueId, capturesPath);
+            Debug.WriteLine(videoPath);
+
+            return View();
+        }
+
+        private string MakeVideo(string uniqueId, string capturesPath)
+        {
+            string videoPath = Server.MapPath($"~/tmp/{uniqueId}.mp4");
+            ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/ffmpeg.exe"))
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                Arguments = $"-start_number 0 -i {capturesPath}\\capture%09d.png -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
+            };
+
+            try
+            {
+                using (Process p = Process.Start(info))
+                {
+                    Debug.WriteLine(p.StandardError.ReadToEnd());
+                    p.WaitForExit();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+
+            return videoPath;
+        }
+
+        private string CreateTempFolder()
+        {
+            string tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempFolder);
+            return tempFolder;
+        }
+
+        private string DoCapture(string uniqueId)
+        {
+            string capturesPath = Server.MapPath($"~/tmp/captures/{uniqueId}");
+            ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                Arguments = $"{Server.MapPath("~/Scripts/phantomjs-capture.js")} {capturesPath}",
+            };
+
+            using (Process p = Process.Start(info))
+            {
+                string output;
+                while ((output = p.StandardOutput.ReadLine()) != null)
+                {
+                    Debug.WriteLine(output);
+                    if (output.Contains("done"))
+                    {
+                        break;
+                    }
+                    else if (output.Contains("timeout") || output.Contains("fail"))
+                    {
+                        throw new Exception($"Failed to capture map. {output}");
+                    }
+                }
+
+                p.WaitForExit();
+            }
+
+            return capturesPath;
         }
     }
 }

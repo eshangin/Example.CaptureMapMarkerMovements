@@ -153,7 +153,7 @@
           }
 
           var currentPoint = new ol.geom.Point(routeCoords[moveObjects.index]);
-          moveObjects.index += 5;
+          moveObjects.index += 25;
           var feature = new ol.Feature(currentPoint);
           moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
         }
