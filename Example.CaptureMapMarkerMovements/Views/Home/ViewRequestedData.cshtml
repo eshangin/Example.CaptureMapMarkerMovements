@@ -25,9 +25,23 @@
 
         //Test points
         var wp = [];
+        var wpOrig = [];
         for (var i = 0; i < inputData.length; i++) {
             wp.push([inputData[i].Lng, inputData[i].Lat]);
+            wpOrig.push([inputData[i].Lng, inputData[i].Lat]);
         }
+
+        //wp = [
+        //    [82.935730, 55.008354]
+        //];
+
+        //var wp = [
+        //    [-5639523.95, -3501274.52],
+        //    [-5649523.95, -3501274.52],
+        //    [-5659523.95, -3601274.52],
+        //    [-5669523.95, -3621274.52],
+        //    [-5679523.95, -3721274.52]
+        //];
 
         console.log(wp);
 
@@ -46,11 +60,11 @@
 
         //Add point feature for every coordinate
         for (var i = 0; i < wp.length; i++) {
-            //wp[i] = ol.proj.transform(wp[i], 'EPSG:4326', 'EPSG:3857');
+            wp[i] = ol.proj.fromLonLat(wp[i]);
             //coord = wp[i];
-            var coord = ol.proj.fromLonLat(wp[i]);
+            //var coord = ol.proj.fromLonLat(wp[i]);
             var pointFeature = new ol.Feature({
-                geometry: new ol.geom.Point(coord),
+                geometry: new ol.geom.Point(wp[i]),
                 name: 'XYZ'
             });
             wpline.addFeature(pointFeature);
@@ -67,19 +81,43 @@
         var tileLayer = new ol.layer.Tile({
             source: new ol.source.OSM()
         });
+        var view = new ol.View({
+            center: wp[0],
+            //projection: projection,
+            zoom: 10
+        });
         var map = new ol.Map({
             layers : [tileLayer,vectorLineLayer],
             target: document.getElementById('map'),
-            view: new ol.View({
-                center: ol.proj.fromLonLat(wp[0]),
-                //projection: projection,
-                zoom: 10,
-            })
+            view: view
         });
 
         // setting zoom so layers fit in map window as suggested in https://gis.stackexchange.com/questions/150634/openlayers-3-setting-zoom-so-layers-fit-in-map-window/192950
-        var extent = vectorLineLayer.getSource().getExtent();
-        map.getView().fit(extent, map.getSize());
+        setTimeout(function () {
+            var feature = vectorLineLayer.getFeatures()[0];
+            console.log(feature);
+            //view.fit(polygon, { padding: [170, 50, 30, 150], constrainResolution: false });
+            return;
+            //var extent = vectorLineLayer.getSource().getExtent();
+            var extent = {
+                maxLng: Math.max(...wpOrig.map(function (item) {
+                    return item[0];
+                })),
+                minLng: Math.min(...wpOrig.map(function (item) {
+                    return item[0];
+                })),
+                maxLat: Math.max(...wpOrig.map(function (item) {
+                    return item[1];
+                })),
+                minLat: Math.max(...wpOrig.map(function (item) {
+                    return item[1];
+                }))
+            };
+            //console.log(maxLng)
+            console.log(extent);
+            //map.getView().fit(extent, map.getSize());
+            map.getView().fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat], map.getSize());
+        }, 1000)
 
     </script>
 </body>
