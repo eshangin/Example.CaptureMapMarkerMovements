@@ -18,7 +18,14 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             string capturesPath = DoCapture(uniqueId);
             string videoPath = MakeVideo(uniqueId, capturesPath);
             Debug.WriteLine(videoPath);
-            return View();
+
+            return Json(new { videoId = uniqueId });
+        }
+
+        public ActionResult DownloadVideo(string id)
+        {
+            string videoPath = GetVideoPath(id);
+            return File(videoPath, "video/mp4", "output.mp4");
         }
 
         public ActionResult RenderMap()
@@ -92,7 +99,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 
         private string MakeVideo(string uniqueId, string capturesPath)
         {
-            string videoPath = Server.MapPath($"~/tmp/{uniqueId}.mp4");
+            string videoPath = GetVideoPath(uniqueId);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/ffmpeg.exe"))
             {
                 UseShellExecute = false,
@@ -116,6 +123,11 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             }
 
             return videoPath;
+        }
+
+        private string GetVideoPath(string uniqueId)
+        {
+            return Server.MapPath($"~/tmp/{uniqueId}.mp4");
         }
 
         private string CreateTempFolder()

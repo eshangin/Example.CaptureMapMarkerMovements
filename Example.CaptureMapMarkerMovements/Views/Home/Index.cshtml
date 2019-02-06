@@ -12,14 +12,19 @@
     </form>
 </div>
 
+<div id="downloadVideoBlock" style="display: none">
+    <hr />
+    <a id="lnk-download">Download video</a>
+</div>
+
 @section scripts
 {
 <script>
     $(function () {
         $('#startProcessing').click(function () {
-            $.post("/Home/StartProcessing", {}, function (data) {
-                //do whatever with the response
-
+            $.post("/Home/StartProcessing", {}).then(function (data) {
+                $('#lnk-download').attr('href', '/Home/DownloadVideo/' + data.videoId);
+                $('#downloadVideoBlock').show();
             });
         });        
     });
