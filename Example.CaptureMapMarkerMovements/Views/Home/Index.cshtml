@@ -1,31 +1,226 @@
 ﻿@{
     ViewBag.Title = "Home Page";
+    Layout = null;
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+</head>
+<body>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+    <div id="map" class="map" style="width: 1000px; height: 600px;"></div>
+    <div id="completestate" style="display:none">not started</div>
+
+    <script>
+//import Feature from 'ol/Feature.js';
+  //    import Map from 'ol/Map.js';
+    //  import View from 'ol/View.js';
+      //import Polyline from 'ol/format/Polyline.js';
+//      import Point from 'ol/geom/Point.js';
+//      import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
+//      import BingMaps from 'ol/source/BingMaps.js';
+//      import VectorSource from 'ol/source/Vector.js';
+//      import {Circle as CircleStyle, Fill, Icon, Stroke, Style} from 'ol/style.js';
+
+      // This long string is placed here due to jsFiddle limitations.
+      // It is usually loaded with AJAX.
+      var polyline = '@Html.Raw(ViewBag.Polyline.Replace("\\", "\\\\"))';
+
+      var route = (new ol.format.Polyline({
+        factor: 1e6
+      }).readGeometry(polyline, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:3857'
+      }));
+
+      var routeCoords = route.getCoordinates();
+      var routeLength = routeCoords.length;
+
+      var routeFeature = new ol.Feature({
+        type: 'route',
+        geometry: route
+      });
+      var geoMarker = new ol.Feature({
+        type: 'geoMarker',
+        geometry: new ol.geom.Point(routeCoords[0])
+      });
+      var startMarker = new ol.Feature({
+        type: 'icon',
+        geometry: new ol.geom.Point(routeCoords[0])
+      });
+      var endMarker = new ol.Feature({
+        type: 'icon',
+        geometry: new ol.geom.Point(routeCoords[routeLength - 1])
+      });
+
+      var styles = {
+        'route': new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            width: 6, color: [237, 212, 0, 0.8]
+          })
+        }),
+        'icon': new ol.style.Style({
+          image: new ol.style.Icon({
+            anchor: [0.5, 1],
+            src: 'data/icon.png'
+          })
+        }),
+        'geoMarker': new ol.style.Style({
+          image: new ol.style.Circle({
+            radius: 7,
+            fill: new ol.style.Fill({color: 'black'}),
+            stroke: new ol.style.Stroke({
+              color: 'white', width: 2
+            })
+          })
+        })
+      };
+
+      var animating = false;
+      var speed, now;
+      var speedInput = document.getElementById('speed');
+      var startButton = document.getElementById('start-animation');
+
+      var vectorLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          features: [routeFeature, geoMarker, startMarker, endMarker]
+        }),
+        style: function(feature) {
+          // hide geoMarker if animation is active
+          if (animating && feature.get('type') === 'geoMarker') {
+            return null;
+          }
+          return styles[feature.get('type')];
+        }
+      });
+
+      var center = [-5639523.95, -3501274.52];
+      var tileSource = new ol.source.OSM();
+      var tileLayer = new ol.layer.Tile({
+            source: tileSource
+          });
+      var map = new ol.Map({
+        target: document.getElementById('map'),
+        loadTilesWhileAnimating: true,
+        view: new ol.View({
+          center: center,
+          zoom: 10,
+          minZoom: 2,
+          maxZoom: 19
+        }),
+        layers: [
+          tileLayer,
+          vectorLayer
+        ],
+        controls: []
+      });
+
+      map.once('rendercomplete', function () {
+      	startAnimation();
+      });
+
+      var moveObjects = { index: 0 };
+
+      function moveMarker() {
+//         var point = new ol.source.Vector(
+//     new ol.geometry.Point(-111.04, 45.68));
+
+// var layer = new ol.source.Vector("My Layer", {
+//     style: ol.feature.Vector.style["default"]
+// });
+
+// map.addLayer(layer);
+// layer.addFeatures([point]);
+
+
+        if (moveObjects.vectorContext && moveObjects.frameState) {
+          //vectorLayer.destroyFeatures();
+          //var elapsedTime = moveObjects.frameState.time - now;
+          //console.log('here', elapsedTime)
+
+          // here the trick to increase speed is to jump some indexes
+          // on lineString coordinates
+          //var index = Math.round(speed * elapsedTime / 1000);
+
+          if (moveObjects.index >= routeLength) {
+            // TODO
+            stopAnimation(true);
+            return;
+          }
+
+          var currentPoint = new ol.geom.Point(routeCoords[moveObjects.index]);
+          moveObjects.index += 5;
+          var feature = new ol.Feature(currentPoint);
+          moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
+        }
+      }
+
+      // setInterval(function () {
+      //   moveMarker();
+      // }, 1000);
+
+      var moveFeature = function(event) {
+        //console.log(event);
+        var vectorContext = event.vectorContext;
+        var frameState = event.frameState;
+        moveObjects.vectorContext = event.vectorContext;
+        moveObjects.frameState = event.frameState;
+
+        /*
+        if (animating) {
+          var elapsedTime = frameState.time - now;
+
+          // here the trick to increase speed is to jump some indexes
+          // on lineString coordinates
+          var index = Math.round(speed * elapsedTime / 1000);
+
+          if (index >= routeLength) {
+            stopAnimation(true);
+            return;
+          }
+
+          //document.getElementById('completestate').innerHTML = 'move' + index;
+          var currentPoint = new ol.geom.Point(routeCoords[index]);
+          var feature = new ol.Feature(currentPoint);
+          vectorContext.drawFeature(feature, styles.geoMarker);
+        }
+        */
+        // tell OpenLayers to continue the postcompose animation
+        //map.render();
+      };
+
+      function startAnimation() {
+      	document.getElementById('completestate').innerHTML = 'start';
+        if (animating) {
+          //stopAnimation(false);
+        } else {
+          animating = true;
+          now = new Date().getTime();
+          speed = 50;//speedInput.value;
+          //startButton.textContent = 'Cancel Animation';
+          // hide geoMarker
+          geoMarker.setStyle(null);
+
+          // just in case you pan somewhere else
+          map.getView().setCenter(center);
+          map.on('postcompose', moveFeature);
+          map.render();
+        }
+      }
+
+      function stopAnimation(ended) {
+        document.getElementById('completestate').innerHTML = 'yes';
+        console.log('animation complete');
+        animating = false;
+
+        //remove listener
+        map.un('postcompose', moveFeature);
+      }
+
+    </script>
+</body>
+</html>
