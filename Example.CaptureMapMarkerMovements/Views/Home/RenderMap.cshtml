@@ -134,16 +134,20 @@
             maxZoom: 19
         });
 
-        var tileSource = new ol.source.OSM();
+        var key = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
+
+        //var tileSource = new ol.source.OSM();
+        var tileSource = new ol.source.BingMaps({ key: key, imagerySet: 'Road' })
+        var tileLayer = new ol.layer.Tile({
+            source: tileSource
+        });
 
         var map = new ol.Map({
             target: document.getElementById('map'),
             loadTilesWhileAnimating: true,
             view: view,
             layers: [
-                new ol.layer.Tile({
-                    source: tileSource
-                }),
+                tileLayer,
                 //vectorLayer,
                 vectorLineLayer
             ],
@@ -152,20 +156,35 @@
 
         fitMap();
 
+        var tilesState = {
+            loaded: 0,
+            total: 0
+        };
+        tileSource.on('tileloadstart', function () {
+            tilesState.total++;
+            console.log('Tiles count: ' + tilesState.total);
+        });
         tileSource.on('tileloadend', function (a) {
-            console.log('tile loaded', a);
+            tilesState.loaded++;
+            if (tilesState.loaded == tilesState.total) {
+                console.log('all tiles loaded');
+                startAnimation();
+            }            
         });
         tileSource.on('tileloaderror', function (a, b) {
             console.log('tile load error', a, b);
         });
+        //tileLayer.on('postcompose', function () {
+        //    console.log('postcompose');
+        //});
 
-        map.once('postrender', function () {
-            console.log('post render');
-        });
-        map.once('rendercomplete', function () {
-            console.log('render complete');
-            startAnimation();
-        });
+        //map.once('postrender', function () {
+        //    console.log('post render');
+        //});
+        //map.once('rendercomplete', function () {
+        //    console.log('render complete');
+        //    startAnimation();
+        //});
 
         var moveObjects = { index: 0 };
 
@@ -205,9 +224,9 @@
             }
         }
 
-         //setInterval(function () {
-         //  moveMarker();
-         //}, 100);
+         setInterval(function () {
+           moveMarker();
+         }, 100);
 
         var moveFeature = function (event) {
             //console.log(event);
