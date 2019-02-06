@@ -134,13 +134,15 @@
             maxZoom: 19
         });
 
+        var tileSource = new ol.source.OSM();
+
         var map = new ol.Map({
             target: document.getElementById('map'),
             loadTilesWhileAnimating: true,
             view: view,
             layers: [
                 new ol.layer.Tile({
-                    source: new ol.source.OSM()
+                    source: tileSource
                 }),
                 //vectorLayer,
                 vectorLineLayer
@@ -150,6 +152,16 @@
 
         fitMap();
 
+        tileSource.on('tileloadend', function (a) {
+            console.log('tile loaded', a);
+        });
+        tileSource.on('tileloaderror', function (a, b) {
+            console.log('tile load error', a, b);
+        });
+
+        map.once('postrender', function () {
+            console.log('post render');
+        });
         map.once('rendercomplete', function () {
             console.log('render complete');
             startAnimation();
@@ -205,7 +217,7 @@
             moveObjects.vectorContext = event.vectorContext;
             moveObjects.frameState = event.frameState;
 
-            console.log('moveFeature');
+            //console.log('moveFeature');
 
             // tell OpenLayers to continue the postcompose animation
             //map.render();
