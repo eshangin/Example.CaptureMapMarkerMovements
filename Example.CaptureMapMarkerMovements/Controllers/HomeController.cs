@@ -8,7 +8,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult RenderMap()
         {
             ViewBag.Polyline = string.Join("", new string[] {
         "hldhx@lnau`BCG_EaC??cFjAwDjF??uBlKMd@}@z@??aC^yk@z_@se@b[wFdE??wFfE}N",
@@ -54,17 +54,8 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult Index()
         {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
             return View();
         }
     }
