@@ -51,6 +51,10 @@
         //console.log(wp);
         // }
 
+        for (var i = 0; i < wp.length; i++) {
+            wp[i] = ol.proj.fromLonLat(wp[i]);
+        }
+
         var wpfeatureLine = new ol.Feature({
             geometry: new ol.geom.LineString(wp),
             name:'ABC Line'
@@ -60,12 +64,12 @@
 
         //Add point feature for every coordinate
         for (var i = 0; i < wp.length; i++) {
-            wp[i] = ol.proj.fromLonLat(wp[i]);
+            //wp[i] = ol.proj.fromLonLat(wp[i]);
             //coord = wp[i];
             //var coord = ol.proj.fromLonLat(wp[i]);
             var pointFeature = new ol.Feature({
                 geometry: new ol.geom.Point(wp[i]),
-                name: 'XYZ'
+                name: 'XYZ' + i
             });
             wpline.addFeature(pointFeature);
         }
@@ -94,11 +98,7 @@
 
         // setting zoom so layers fit in map window as suggested in https://gis.stackexchange.com/questions/150634/openlayers-3-setting-zoom-so-layers-fit-in-map-window/192950
         setTimeout(function () {
-            var feature = vectorLineLayer.getFeatures()[0];
-            console.log(feature);
-            //view.fit(polygon, { padding: [170, 50, 30, 150], constrainResolution: false });
             return;
-            //var extent = vectorLineLayer.getSource().getExtent();
             var extent = {
                 maxLng: Math.max(...wpOrig.map(function (item) {
                     return item[0];
@@ -113,6 +113,12 @@
                     return item[1];
                 }))
             };
+            var feature = wpline.getFeatures()[0];
+            var polygon = feature.getGeometry();
+            console.log(polygon);
+            view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat], { nearest: true });
+            return;
+            //var extent = vectorLineLayer.getSource().getExtent();
             //console.log(maxLng)
             console.log(extent);
             //map.getView().fit(extent, map.getSize());
