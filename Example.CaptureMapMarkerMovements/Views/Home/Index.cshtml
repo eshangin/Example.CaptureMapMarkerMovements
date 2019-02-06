@@ -3,7 +3,7 @@
     ViewBag.Title = "Index";
 }
 
-<div>
+<div style="margin-bottom: 30px">
     <h1>Capture marker movements</h1>
     <form method="post">
         <div>
@@ -12,7 +12,8 @@
     </form>
 </div>
 
-<div id="log"></div>
+<h2>Log</h2>
+<div id="log" style="height: 400px; overflow: auto"></div>
 
 <div id="downloadVideoBlock" style="display: none">
     <hr />
@@ -41,6 +42,7 @@
                     $.post("/Home/GetLog/", { videoId: videoId }).then(function (data) {
                         if (data && data.log) {
                             $('#log').html(data.log);
+                            $('#log').scrollTop($('#log').prop("scrollHeight"));
                         }
                         setTimeout(function () {
                             renderLog(videoId);

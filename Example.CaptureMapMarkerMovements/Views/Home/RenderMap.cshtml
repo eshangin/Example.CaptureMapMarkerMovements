@@ -218,7 +218,7 @@
 
                 console.log(moveObjects.index);
                 var currentPoint = new ol.geom.Point(wp[moveObjects.index]);
-                moveObjects.index += 5;
+                moveObjects.index += 1;
                 var feature = new ol.Feature(currentPoint);
                 moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
             }
