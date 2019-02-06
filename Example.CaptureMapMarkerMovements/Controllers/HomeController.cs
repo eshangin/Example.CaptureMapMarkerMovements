@@ -11,6 +11,16 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
+        public ActionResult StartProcessing()
+        {
+            string uniqueId = Guid.NewGuid().ToString();
+            Debug.WriteLine($"PROCESS {uniqueId}");
+            string capturesPath = DoCapture(uniqueId);
+            string videoPath = MakeVideo(uniqueId, capturesPath);
+            Debug.WriteLine(videoPath);
+            return View();
+        }
+
         public ActionResult RenderMap()
         {
             ViewBag.Polyline = string.Join("", new string[] {

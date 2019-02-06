@@ -7,7 +7,21 @@
     <h1>Capture marker movements</h1>
     <form method="post">
         <div>
-            <button type="submit" class="btn btn-primary">Start capture</button>
+            <button type="button" id="startProcessing" class="btn btn-primary">Start capture</button>
         </div>
     </form>
 </div>
+
+@section scripts
+{
+<script>
+    $(function () {
+        $('#startProcessing').click(function () {
+            $.post("/Home/StartProcessing", {}, function (data) {
+                //do whatever with the response
+
+            });
+        });        
+    });
+</script>
+}
