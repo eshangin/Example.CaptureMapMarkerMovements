@@ -23,6 +23,8 @@
 
         var inputData = JSON.parse(document.getElementById('input-data').innerText);
 
+        //console.log(inputData)
+
         var wp = [];
         for (var i = 0; i < inputData.length; i++) {
             wp.push([inputData[i].Lng, inputData[i].Lat]);
@@ -55,7 +57,7 @@
         wpline.addFeature(wpfeatureLine); //lined or a way point feature on map
 
         var vectorLineLayer = new ol.layer.Vector({
-            source: wpline,
+            source: wpline
             //Remove any style, Default style will be used
         });
 
@@ -216,11 +218,13 @@
                     return;
                 }
 
-                console.log(moveObjects.index);
                 var currentPoint = new ol.geom.Point(wp[moveObjects.index]);
-                moveObjects.index += 1;
                 var feature = new ol.Feature(currentPoint);
+                var text = inputData[moveObjects.index].Speed;
+                styles.geoMarker.setText(createTextStyle(text));
                 moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
+
+                moveObjects.index += 1;
             }
         }
 
@@ -288,6 +292,16 @@
             };
             view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat]);
         }
+
+        function createTextStyle(text) {
+            return new ol.style.Text({
+                textBaseline: 'middle',
+                font: 'Arial',
+                text: text,
+                fill: new ol.style.Fill({ color: '#000000' }),
+                offsetY: -15
+            });
+        };
 
     </script>
 </body>
