@@ -33,9 +33,13 @@
     </div>
     @if (showButtons)
     {
-        <div style="margin-top: 30px">
-            <button type="button" id="btn-start-animation">Start animation</button>
-        </div>
+    <div style="margin-top: 30px">
+        <label for="speed">
+            speed:&nbsp;
+            <input id="speed" type="range" min="10" max="100" step="1" value="20" />
+        </label>
+        <button type="button" id="btn-start-animation">Start animation</button>
+    </div>
     }
 
     <script>        
@@ -298,13 +302,21 @@
 
         function initButtons() {
             var btn = document.getElementById('btn-start-animation');
-            if (btn) {
-                btn.addEventListener('click', function () {
-                    setInterval(function () {
+            if (btn) {                
+                btn.addEventListener('click', function () {                    
+                    animate();
+
+                    function animate() {
+                        console.log('animate');
                         if (document.getElementById('completestate').innerHTML != 'yes') {
                             moveMarker();
+
+                            var animationSpeed = document.getElementById('speed').value;
+                            setTimeout(function () {
+                                animate();
+                            }, 2000 / animationSpeed);
                         }
-                    }, 20);
+                    }
                 });
             }
         }
