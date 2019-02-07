@@ -40,6 +40,8 @@
 
     <script>        
 
+        var bingMapsKey = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
+
         var inputData = JSON.parse(document.getElementById('input-data').innerText);
 
         var wp = parseWaypoints(inputData);
@@ -240,10 +242,10 @@
         }
 
         function createMapTilesLayer(map) {
-            var key = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
 
+            // OSM tiles frequently have errors during load
             //var tileSource = new ol.source.OSM();
-            var tileSource = new ol.source.BingMaps({ key: key, imagerySet: 'Road' });
+            var tileSource = new ol.source.BingMaps({ key: bingMapsKey, imagerySet: 'Road' });
 
             var tilesState = {
                 loaded: 0,
