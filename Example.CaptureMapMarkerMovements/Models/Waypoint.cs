@@ -11,5 +11,6 @@ namespace Example.CaptureMapMarkerMovements.Models
         public decimal Lng { get; set; }
         public decimal Speed { get; set; }
         public string Date { get; set; }
+        public string DeviceName { get; set; }
     }
 }

@@ -321,7 +321,8 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                        Lat = Convert.ToDecimal(items[9]),
                        Lng = Convert.ToDecimal(items[10]),
                        Speed = Convert.ToDecimal(items[7]),
-                       Date = items[6]
+                       Date = items[6],
+                       DeviceName = items[2]
                    };
         }
     }

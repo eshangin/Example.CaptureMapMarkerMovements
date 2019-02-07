@@ -61,9 +61,9 @@
             }
 
             var waypointCoords = waypoints[currentCarWaypointIndex];
-            var text = 'Date: ' + intermidiateWaypointsToOriginalDataHash[waypointCoords[0] + waypointCoords[1]].Date +
-                '<br/>Speed: ' + intermidiateWaypointsToOriginalDataHash[waypointCoords[0] + waypointCoords[1]].Speed;
-            //styles.carMarker.setText(createTextStyle(text));
+            var waypointData = intermidiateWaypointsToOriginalDataHash[waypointCoords[0] + waypointCoords[1]];
+            var text = 'Date: ' + waypointData.Date + '<br/>Speed: ' + waypointData.Speed;
+            mapInfo.carMarker.getStyle().setText(createTextStyle(waypointData.DeviceName));
             mapInfo.carMarker.getGeometry().setCoordinates(waypointCoords);
 
             updateOverlay(mapInfo.overlay, waypointCoords, text);
@@ -111,8 +111,9 @@
                 textBaseline: 'middle',
                 font: 'Arial',
                 text: text,
-                fill: new ol.style.Fill({ color: '#000000' }),
-                offsetY: -15
+                fill: new ol.style.Fill({ color: 'blue' }),
+                offsetY: 15,
+                stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
             });
         };
 
