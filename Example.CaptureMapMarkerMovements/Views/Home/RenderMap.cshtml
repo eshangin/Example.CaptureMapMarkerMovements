@@ -43,6 +43,7 @@
         var inputData = JSON.parse(document.getElementById('input-data').innerText);
 
         var wp = parseWaypoints(inputData);
+
         var mapInfo = initializeMap();
         initButtons();
 
@@ -184,6 +185,8 @@
                     })
                 })
             }));
+
+            carMarker.getStyle().setText(createTextStyle(inputData[0].DeviceName));
 
             map.addLayer(new ol.layer.Vector({
                 source: new ol.source.Vector({
