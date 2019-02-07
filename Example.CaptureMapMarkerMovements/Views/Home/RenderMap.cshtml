@@ -23,8 +23,6 @@
 
         var inputData = JSON.parse(document.getElementById('input-data').innerText);
 
-        //console.log(inputData)
-
         var wp = [];
         for (var i = 0; i < inputData.length; i++) {
             wp.push([inputData[i].Lng, inputData[i].Lat]);
@@ -156,7 +154,72 @@
             controls: []
         });
 
+
         fitMap();
+
+        var waypointsWithIntermidiate = [];
+        var intermidiateWaypointsToOriginalData = {};
+
+        calculateIntermidiatePoints();
+
+        function calculateIntermidiatePoints() {
+            var mapExtent = map.getView().calculateExtent(map.getSize());
+            var mapExtentLngLat = ol.proj.transformExtent(mapExtent, 'EPSG:3857', 'EPSG:4326');
+            var mapDiagonalDistance = distanceBetweenPoints([mapExtent[0], mapExtent[1]], [mapExtent[2], mapExtent[3]]);
+            console.log('MAP', mapExtent,
+                mapExtentLngLat,
+                mapDiagonalDistance);
+
+            var minPointsDistanceData = {
+                minLength: 10000000000000000,
+                maxLength: 0
+            };
+            var dotsPerOnePercentDistance = 1;
+            for (var i = 0; i < wp.length; i++) {
+                //wp.push([inputData[i].Lng, inputData[i].Lat]);
+                if (i > 0) {
+                    minPointsDistanceData.minLength = Math.min(minPointsDistanceData.minLength, distanceBetweenPoints(wp[i - 1], wp[i]));
+                    minPointsDistanceData.maxLength = Math.max(minPointsDistanceData.maxLength, distanceBetweenPoints(wp[i - 1], wp[i]));
+                    console.log(minPointsDistanceData.minLength, minPointsDistanceData.maxLength,
+                        (distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance) + ' %', Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance)));
+                    var wpDistToMapDistInPercents = Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance));
+                    //waypointsWithIntermidiate
+
+                    // Push actual point
+                    waypointsWithIntermidiate.push(wp[i - 1]);
+                    pushIntermidiateWaypont(wp[i - 1], inputData[i - 1]);
+
+                    // Push itermidiate points
+                    var dotsPerCurrentPoints = dotsPerOnePercentDistance * wpDistToMapDistInPercents;
+                    for (var j = 1; j <= dotsPerCurrentPoints; j++) {
+                        pushIntermidiateWaypont([
+                            wp[i - 1][0] + (wp[i][0] - wp[i - 1][0]) * j / (dotsPerCurrentPoints + 1),
+                            wp[i - 1][1] + (wp[i][1] - wp[i - 1][1]) * j / (dotsPerCurrentPoints + 1)
+                        ], inputData[i - 1]);
+                    }
+
+                    if (i == wp.length - 1) {
+                        waypointsWithIntermidiate.push(wp[i]);
+                        pushIntermidiateWaypont(wp[i], inputData[i]);
+                    }
+
+                    //console.log(wp[i - 1], waypointsWithIntermidiate);
+                }
+            }
+
+            for (var i = 0; i < wp.length; i++) {
+                if (i > 0) {
+                    var dotsBetweenWaypoints = Math.min(10, Math.ceil(distanceBetweenPoints(wp[i - 1], wp[i]) * 5 / minPointsDistanceData.minLength))
+                    console.log('DOTS', dotsBetweenWaypoints);
+                }
+            }
+        }
+
+        function pushIntermidiateWaypont(coordinates, originalWaypointData) {
+            waypointsWithIntermidiate.push(coordinates);
+            intermidiateWaypointsToOriginalData[coordinates[0] + coordinates[1]] = originalWaypointData;
+        }
+
 
         var tilesState = {
             loaded: 0,
@@ -192,6 +255,8 @@
 
         function moveMarker() {
 
+            var waypoints = waypointsWithIntermidiate;
+
             //         var point = new ol.source.Vector(
             //     new ol.geometry.Point(-111.04, 45.68));
 
@@ -212,15 +277,17 @@
                 // on lineString coordinates
                 //var index = Math.round(speed * elapsedTime / 1000);
 
-                if (moveObjects.index >= wp.length) {
+                if (moveObjects.index >= waypoints.length) {
                     // TODO
                     stopAnimation(true);
                     return;
                 }
 
-                var currentPoint = new ol.geom.Point(wp[moveObjects.index]);
+                var waypointCoords = waypoints[moveObjects.index];
+                var currentPoint = new ol.geom.Point(waypointCoords);
                 var feature = new ol.Feature(currentPoint);
-                var text = inputData[moveObjects.index].Speed;
+                //var text = inputData[moveObjects.index].Speed;
+                var text = intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Speed;
                 styles.geoMarker.setText(createTextStyle(text));
                 moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
 
@@ -228,9 +295,11 @@
             }
         }
 
-         //setInterval(function () {
-         //  moveMarker();
-         //}, 100);
+        //setInterval(function () {
+        //    if (document.getElementById('completestate').innerHTML != 'yes') {
+        //        moveMarker();
+        //    }
+        //}, 100);
 
         var moveFeature = function (event) {
             //console.log(event);
@@ -292,6 +361,11 @@
             };
             view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat]);
         }
+
+        function distanceBetweenPoints(latlng1, latlng2) {
+            var line = new ol.geom.LineString([latlng1, latlng2]);
+            return line.getLength();
+        };
 
         function createTextStyle(text) {
             return new ol.style.Text({
