@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Example.CaptureMapMarkerMovements.Models.Waypoint>
 
 @{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "";
     Layout = null;
     string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(Model);
     bool showButtons = Request["buttons"] == "True";
