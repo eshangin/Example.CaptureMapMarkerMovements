@@ -4,6 +4,7 @@
     ViewBag.Title = "Home Page";
     Layout = null;
     string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(Model);
+    bool showButtons = Request["buttons"] == "True";
 }
 
 <!DOCTYPE html>
@@ -30,6 +31,12 @@
         <div id="input-data">@jsonData</div>
         <div id="overlay" class="overlay"></div>
     </div>
+    @if (showButtons)
+    {
+        <div style="margin-top: 30px">
+            <button type="button" id="btn-start-animation">Start animation</button>
+        </div>
+    }
 
     <script>        
 
@@ -37,18 +44,13 @@
 
         var wp = parseWaypoints(inputData);
         var mapInfo = initializeMap();
+        initButtons();
 
         var currentCarWaypointIndex = 0;
         var intermidiateWaypointsToOriginalDataHash = {};
         var waypointsWithIntermidiate = calculateIntermidiatePoints();        
 
         console.log('TOTAL WAYPOINTS', waypointsWithIntermidiate.length);
-
-        setInterval(function () {
-            if (document.getElementById('completestate').innerHTML != 'yes') {
-                moveMarker();
-            }
-        }, 10);
 
         // This function will be called by PhantomJS script
         function moveMarker() {
@@ -277,6 +279,19 @@
                 map: map,
                 carMarker: carMarker,
                 overlay: overlay
+            }
+        }
+
+        function initButtons() {
+            var btn = document.getElementById('btn-start-animation');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    setInterval(function () {
+                        if (document.getElementById('completestate').innerHTML != 'yes') {
+                            moveMarker();
+                        }
+                    }, 20);
+                });
             }
         }
 
