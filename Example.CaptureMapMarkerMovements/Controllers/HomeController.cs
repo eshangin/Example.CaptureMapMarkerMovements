@@ -96,13 +96,6 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return Server.MapPath($"~/tmp/{videoId}.mp4");
         }
 
-        private string CreateTempFolder()
-        {
-            string tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(tempFolder);
-            return tempFolder;
-        }
-
         private string DoCapture(string videoId)
         {
             const int captureProcessTimeoutInSeconds = 240;
@@ -152,6 +145,21 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         private string ReadLog(string videoId)
         {
             return System.Web.HttpContext.Current.Application[$"processing-{videoId}"] as string;
+        }
+
+        private IEnumerable<Waypoint> GetData(string rawCsvData)
+        {
+            var lines = rawCsvData.Trim().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
+            return from l in lines
+                   let items = l.Split(',')
+                   select new Waypoint()
+                   {
+                       Lat = Convert.ToDecimal(items[9]),
+                       Lng = Convert.ToDecimal(items[10]),
+                       Speed = Convert.ToDecimal(items[7]),
+                       Date = items[6],
+                       DeviceName = items[2]
+                   };
         }
 
         private string GetRawData()
@@ -313,21 +321,6 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 302845739,446,Dodge,2,Car,,1/22/2019 23:47,2.102720114,TRUE,29.3922163,-90.273245,57
 302845743,446,Dodge,2,Car,,1/22/2019 23:47,0,FALSE,29.392219,-90.2732365,66
 ".Trim();
-        }
-
-        private IEnumerable<Waypoint> GetData(string rawCsvData)
-        {
-            var lines = rawCsvData.Trim().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
-            return from l in lines
-                   let items = l.Split(',')
-                   select new Waypoint()
-                   {
-                       Lat = Convert.ToDecimal(items[9]),
-                       Lng = Convert.ToDecimal(items[10]),
-                       Speed = Convert.ToDecimal(items[7]),
-                       Date = items[6],
-                       DeviceName = items[2]
-                   };
         }
     }
 }

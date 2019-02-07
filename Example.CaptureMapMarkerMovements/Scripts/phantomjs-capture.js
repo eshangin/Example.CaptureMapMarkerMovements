@@ -7,7 +7,7 @@ page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.3
 
 var width = 1100;
 var height = 700;
-// TODO :: seems not works
+
 page.viewportSize = { width: width, height: height };
 
 console.log('try open url');
@@ -59,7 +59,6 @@ page.open(appArgs.mapUrl, function (status) {
                 setTimeout(function () {
                     trackMapStates();
                 }, 0);
-                //trackMapStates();
                 break;
 
             case 'yes':
@@ -75,7 +74,6 @@ page.open(appArgs.mapUrl, function (status) {
                 break;
         }
     }
-    //page.clipRect = {top: 0, left: 0, width: width, height: height};
 });
 
 function getArgs() {
