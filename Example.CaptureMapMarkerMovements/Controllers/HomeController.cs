@@ -121,7 +121,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                 while ((output = p.StandardOutput.ReadLine()) != null)
                 {
                     LogInfo(videoId, output);
-                    if (output.Contains("done"))
+                    if (output.Contains("complete"))
                     {
                         break;
                     }

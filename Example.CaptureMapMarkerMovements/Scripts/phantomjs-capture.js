@@ -63,7 +63,7 @@ page.open(appArgs.mapUrl, function (status) {
                 break;
 
             case 'yes':
-                console.log('done');
+                console.log('Image capture complete');
                 phantom.exit();
                 break;
 
