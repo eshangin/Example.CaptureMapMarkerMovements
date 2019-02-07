@@ -15,6 +15,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         {
             LogInfo(videoId, $"PROCESS {videoId}");
             string capturesPath = DoCapture(videoId);
+            LogInfo(videoId, "Start video processing. Please wait...");
             string videoPath = MakeVideo(videoId, capturesPath);
             LogInfo(videoId, videoPath);
 

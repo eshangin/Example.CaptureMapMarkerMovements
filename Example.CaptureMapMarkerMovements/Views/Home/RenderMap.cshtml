@@ -10,14 +10,26 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <style type="text/css">
+        .overlay {
+            border: 1px solid #000;
+            background-color: #fff;
+            text-align: center;
+            padding: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
 </head>
 <body>
 
     <div id="map" class="map" style="width: 1000px; height: 600px;"></div>
-    <div id="completestate" style="display:none">not started</div>
-    <div id="input-data" style="display:none">@jsonData</div>
+    <div style="display: none">
+        <div id="completestate">not started</div>
+        <div id="input-data">@jsonData</div>
+        <div id="overlay" class="overlay"></div>
+    </div>
 
     <script>        
 
@@ -126,6 +138,7 @@
         var intermidiateWaypointsToOriginalData = {};
 
         calculateIntermidiatePoints();
+        var overlay = createOverlay(map);
 
         console.log('TOTAL WAYPOINTS', waypointsWithIntermidiate.length);
 
@@ -153,7 +166,7 @@
         //    if (document.getElementById('completestate').innerHTML != 'yes') {
         //        moveMarker();
         //    }
-        //}, 100);
+        //}, 10);
 
         function moveMarker() {
 
@@ -169,9 +182,11 @@
                 var waypointCoords = waypoints[moveObjects.index];
                 var currentPoint = new ol.geom.Point(waypointCoords);
                 var feature = new ol.Feature(currentPoint);
-                var text = intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Speed;
-                styles.geoMarker.setText(createTextStyle(text));
+                var text = 'Date: ' + intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Date + '<br/>Speed: ' + intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Speed;
+                //styles.geoMarker.setText(createTextStyle(text));
                 moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
+
+                updateOverlay(overlay, waypointCoords, text);
 
                 moveObjects.index += 1;
             }
@@ -193,11 +208,14 @@
         }
 
         function stopAnimation() {
-            document.getElementById('completestate').innerHTML = 'yes';
-            console.log('animation complete');
+            map.removeOverlay(overlay);
 
             //remove listener
             map.un('postcompose', moveFeature);
+
+            console.log('animation complete');
+
+            document.getElementById('completestate').innerHTML = 'yes';
         }
 
         function fitMap() {
@@ -265,6 +283,20 @@
         function pushIntermidiateWaypont(coordinates, originalWaypointData) {
             waypointsWithIntermidiate.push(coordinates);
             intermidiateWaypointsToOriginalData[coordinates[0] + coordinates[1]] = originalWaypointData;
+        }
+
+        function createOverlay(map) {
+            var overlay = new ol.Overlay({
+                element: document.getElementById('overlay'),
+                positioning: 'bottom-center'
+            });            
+            map.addOverlay(overlay);
+            return overlay;
+        }
+
+        function updateOverlay(overlay, coordinates, text) {
+            element: document.getElementById('overlay').innerHTML = text;
+            overlay.setPosition(coordinates);
         }
 
     </script>
