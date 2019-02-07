@@ -5,7 +5,6 @@ var appArgs = getArgs();
 var page = require("webpage").create();
 page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36';
 
-var timeoutInSeconds = 120;
 var width = 1100;
 var height = 700;
 // TODO :: seems not works
@@ -34,8 +33,8 @@ page.open(appArgs.mapUrl, function (status) {
     function trackMapStates() {
         var secondsFromStart = (new Date() - date) / 1000;
 
-        if (secondsFromStart >= timeoutInSeconds) {
-            console.log('timeout');
+        if (secondsFromStart >= appArgs.timeoutInSeconds) {
+            console.log('oops! timeout (' + appArgs.timeoutInSeconds + ' seconds)');
             phantom.exit();
         }
 
@@ -84,6 +83,7 @@ function getArgs() {
 
     var outputPath = args[1];
     var mapUrl = args[2];
+    var timeoutInSeconds = args[3];
 
     if (!outputPath) {
         console.log('fail: output path not specified');
@@ -95,9 +95,15 @@ function getArgs() {
         phantom.exit();
     }
 
+    if (!timeoutInSeconds) {
+        console.log('fail: processint timeout not specified');
+        phantom.exit();
+    }
+
     return {
         outputPath: outputPath,
-        mapUrl: mapUrl
+        mapUrl: mapUrl,
+        timeoutInSeconds: timeoutInSeconds
     };
 }
 

@@ -103,6 +103,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 
         private string DoCapture(string videoId)
         {
+            const int captureProcessTimeoutInSeconds = 240;
             string capturesPath = Server.MapPath($"~/tmp/captures/{videoId}");
             string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { }, Request.Url.Scheme);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
@@ -111,7 +112,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = $"{Server.MapPath("~/Scripts/phantomjs-capture.js")} {capturesPath} {mapUrlPath}",
+                Arguments = $"{Server.MapPath("~/Scripts/phantomjs-capture.js")} {capturesPath} {mapUrlPath} {captureProcessTimeoutInSeconds}",
             };
 
             using (Process p = Process.Start(info))
