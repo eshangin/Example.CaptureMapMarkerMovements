@@ -37,6 +37,7 @@
             var videoId = uuidv4();
             var data = $('#source-data').val();
             $('#log').html('');
+            $('#downloadVideoBlock').hide();
             enableDisableControls(true);
             $.post("/Home/StartProcessing", {
                 videoId: videoId,
