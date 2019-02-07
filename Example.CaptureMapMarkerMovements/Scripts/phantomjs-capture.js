@@ -114,7 +114,8 @@ function pad(num, size) {
 }
 
 function formatDate(m) {
-    return ("0" + m.getUTCMinutes()).slice(-2) + ":" +
+    return ("0" + m.getUTCHours()).slice(-2) + ":" +
+        ("0" + m.getUTCMinutes()).slice(-2) + ":" +
         ("0" + m.getUTCSeconds()).slice(-2) + ":" +
         m.getUTCMilliseconds();
 }
