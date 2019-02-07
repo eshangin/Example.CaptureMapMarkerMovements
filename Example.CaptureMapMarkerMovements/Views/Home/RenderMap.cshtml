@@ -35,190 +35,55 @@
 
         var inputData = JSON.parse(document.getElementById('input-data').innerText);
 
-        var wp = [];
-        for (var i = 0; i < inputData.length; i++) {
-            wp.push([inputData[i].Lng, inputData[i].Lat]);
-        }
+        var wp = parseWaypoints(inputData);
+        var mapInfo = initializeMap();
 
-        for (var i = 0; i < wp.length; i++) {
-            wp[i] = ol.proj.fromLonLat(wp[i]);
-        }
-
-        var wpfeatureLine = new ol.Feature({
-            geometry: new ol.geom.LineString(wp),
-            name: 'ABC Line'
-        });
-
-        var wpline = new ol.source.Vector({});
-
-        //Add point feature for every coordinate
-        for (var i = 0; i < wp.length; i++) {
-            var pointFeature = new ol.Feature({
-                geometry: new ol.geom.Point(wp[i]),
-                name: 'XYZ' + i
-            });
-            wpline.addFeature(pointFeature);
-        }
-
-        //wpfeatureLine.setStyle(); You can add your custom style definition here.
-        wpline.addFeature(wpfeatureLine); //lined or a way point feature on map
-
-        var vectorLineLayer = new ol.layer.Vector({
-            source: wpline
-            //Remove any style, Default style will be used
-        });
-
-        var geoMarker = new ol.Feature({
-            type: 'geoMarker',
-            geometry: new ol.geom.Point(wp[0])
-        });
-        //var startMarker = new ol.Feature({
-        //    type: 'icon',
-        //    geometry: new ol.geom.Point(routeCoords[0])
-        //});
-        //var endMarker = new ol.Feature({
-        //    type: 'icon',
-        //    geometry: new ol.geom.Point(routeCoords[routeLength - 1])
-        //});
-
-        var styles = {
-            'route': new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    width: 6, color: [237, 212, 0, 0.8]
-                })
-            }),
-            'icon': new ol.style.Style({
-                image: new ol.style.Icon({
-                    anchor: [0.5, 1],
-                    src: 'data/icon.png'
-                })
-            }),
-            'geoMarker': new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({ color: 'black' }),
-                    stroke: new ol.style.Stroke({
-                        color: 'white', width: 2
-                    })
-                })
-            })
-        };
-
-        var view = new ol.View({
-            center: wp[0],
-            zoom: 10,
-            minZoom: 2,
-            maxZoom: 19
-        });
-
-        var key = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
-
-        //var tileSource = new ol.source.OSM();
-        var tileSource = new ol.source.BingMaps({ key: key, imagerySet: 'Road' })
-        var tileLayer = new ol.layer.Tile({
-            source: tileSource
-        });
-
-        var map = new ol.Map({
-            target: document.getElementById('map'),
-            loadTilesWhileAnimating: true,
-            view: view,
-            layers: [
-                tileLayer,
-                //vectorLayer,
-                vectorLineLayer
-            ],
-            controls: []
-        });
-
-
-        fitMap();
-
-        var waypointsWithIntermidiate = [];
-        var intermidiateWaypointsToOriginalData = {};
-
-        calculateIntermidiatePoints();
-        var overlay = createOverlay(map);
+        var currentCarWaypointIndex = 0;
+        var intermidiateWaypointsToOriginalDataHash = {};
+        var waypointsWithIntermidiate = calculateIntermidiatePoints();        
 
         console.log('TOTAL WAYPOINTS', waypointsWithIntermidiate.length);
 
-        var moveObjects = { index: 0 };
+        setInterval(function () {
+            if (document.getElementById('completestate').innerHTML != 'yes') {
+                moveMarker();
+            }
+        }, 10);
 
-        var tilesState = {
-            loaded: 0,
-            total: 0
-        };
-        tileSource.on('tileloadstart', function () {
-            tilesState.total++;
-        });
-        tileSource.on('tileloadend', function (a) {
-            tilesState.loaded++;
-            if (tilesState.loaded == tilesState.total) {
-                console.log('all tiles loaded (' + tilesState.loaded + ')');
-                startAnimation();
-            }            
-        });
-        tileSource.on('tileloaderror', function (a, b) {
-            console.log('tile load error', a, b);
-        });
-
-        //setInterval(function () {
-        //    if (document.getElementById('completestate').innerHTML != 'yes') {
-        //        moveMarker();
-        //    }
-        //}, 10);
-
+        // This function will be called by PhantomJS script
         function moveMarker() {
 
             var waypoints = waypointsWithIntermidiate;
 
-            if (moveObjects.vectorContext && moveObjects.frameState) {
-
-                if (moveObjects.index >= waypoints.length) {
-                    stopAnimation();
-                    return;
-                }
-
-                var waypointCoords = waypoints[moveObjects.index];
-                var currentPoint = new ol.geom.Point(waypointCoords);
-                var feature = new ol.Feature(currentPoint);
-                var text = 'Date: ' + intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Date + '<br/>Speed: ' + intermidiateWaypointsToOriginalData[waypointCoords[0] + waypointCoords[1]].Speed;
-                //styles.geoMarker.setText(createTextStyle(text));
-                moveObjects.vectorContext.drawFeature(feature, styles.geoMarker);
-
-                updateOverlay(overlay, waypointCoords, text);
-
-                moveObjects.index += 1;
+            if (currentCarWaypointIndex >= waypoints.length) {
+                stopAnimation();
+                return;
             }
+
+            var waypointCoords = waypoints[currentCarWaypointIndex];
+            var text = 'Date: ' + intermidiateWaypointsToOriginalDataHash[waypointCoords[0] + waypointCoords[1]].Date +
+                '<br/>Speed: ' + intermidiateWaypointsToOriginalDataHash[waypointCoords[0] + waypointCoords[1]].Speed;
+            //styles.carMarker.setText(createTextStyle(text));
+            mapInfo.carMarker.getGeometry().setCoordinates(waypointCoords);
+
+            updateOverlay(mapInfo.overlay, waypointCoords, text);
+
+            currentCarWaypointIndex += 1;
         }
 
-        var moveFeature = function (event) {
-            moveObjects.vectorContext = event.vectorContext;
-            moveObjects.frameState = event.frameState;
-        };
-
-        function startAnimation() {
+        function readyToStartAnimation() {
             document.getElementById('completestate').innerHTML = 'start';
-            now = new Date().getTime();
-            speed = 50;
-            geoMarker.setStyle(null);
-
-            map.on('postcompose', moveFeature);
-            map.render();
         }
 
         function stopAnimation() {
-            map.removeOverlay(overlay);
-
-            //remove listener
-            map.un('postcompose', moveFeature);
+            mapInfo.map.removeOverlay(mapInfo.overlay);
 
             console.log('animation complete');
 
             document.getElementById('completestate').innerHTML = 'yes';
         }
 
-        function fitMap() {
+        function fitMap(map) {
             var extent = {
                 maxLng: Math.max.apply(null, wp.map(function (item) {
                     return item[0];
@@ -233,7 +98,7 @@
                     return item[1];
                 }))
             };
-            view.fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat]);
+            map.getView().fit([extent.minLng, extent.minLat, extent.maxLng, extent.maxLat]);
         }
 
         function distanceBetweenPoints(latlng1, latlng2) {
@@ -252,7 +117,8 @@
         };
 
         function calculateIntermidiatePoints() {
-            var mapExtent = map.getView().calculateExtent(map.getSize());
+            var intermidiateWp = [];
+            var mapExtent = mapInfo.map.getView().calculateExtent(mapInfo.map.getSize());
             var mapDiagonalDistance = distanceBetweenPoints([mapExtent[0], mapExtent[1]], [mapExtent[2], mapExtent[3]]);
 
             var dotsPerOnePercentDistance = 1;
@@ -261,28 +127,30 @@
                 var wpDistToMapDistInPercents = Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance));
 
                 // Push actual point
-                waypointsWithIntermidiate.push(wp[i - 1]);
-                pushIntermidiateWaypont(wp[i - 1], inputData[i - 1]);
+                intermidiateWp.push(wp[i - 1]);
+                pushIntermidiateWaypont(intermidiateWp, wp[i - 1], inputData[i - 1]);
 
                 // Push itermidiate points
                 var dotsPerCurrentPoints = dotsPerOnePercentDistance * wpDistToMapDistInPercents;
                 for (var j = 1; j <= dotsPerCurrentPoints; j++) {
-                    pushIntermidiateWaypont([
+                    pushIntermidiateWaypont(intermidiateWp, [
                         wp[i - 1][0] + (wp[i][0] - wp[i - 1][0]) * j / (dotsPerCurrentPoints + 1),
                         wp[i - 1][1] + (wp[i][1] - wp[i - 1][1]) * j / (dotsPerCurrentPoints + 1)
                     ], inputData[i - 1]);
                 }
 
                 if (i == wp.length - 1) {
-                    waypointsWithIntermidiate.push(wp[i]);
-                    pushIntermidiateWaypont(wp[i], inputData[i]);
+                    intermidiateWp.push(wp[i]);
+                    pushIntermidiateWaypont(intermidiateWp, wp[i], inputData[i]);
                 }
             }
+
+            return intermidiateWp;
         }
 
-        function pushIntermidiateWaypont(coordinates, originalWaypointData) {
-            waypointsWithIntermidiate.push(coordinates);
-            intermidiateWaypointsToOriginalData[coordinates[0] + coordinates[1]] = originalWaypointData;
+        function pushIntermidiateWaypont(intermidiateWp, coordinates, originalWaypointData) {
+            intermidiateWp.push(coordinates);
+            intermidiateWaypointsToOriginalDataHash[coordinates[0] + coordinates[1]] = originalWaypointData;
         }
 
         function createOverlay(map) {
@@ -297,6 +165,118 @@
         function updateOverlay(overlay, coordinates, text) {
             element: document.getElementById('overlay').innerHTML = text;
             overlay.setPosition(coordinates);
+        }
+
+        function createCarMarker(map) {
+            var carMarker = new ol.Feature({
+                geometry: new ol.geom.Point(wp[0])
+            });
+
+            carMarker.setStyle(new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({ color: 'black' }),
+                    stroke: new ol.style.Stroke({
+                        color: 'white', width: 2
+                    })
+                })
+            }));
+
+            map.addLayer(new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    features: [carMarker]
+                })
+            }));
+
+            return carMarker;
+        }
+
+        function parseWaypoints() {
+            var wp = [];
+            for (var i = 0; i < inputData.length; i++) {
+                wp.push([inputData[i].Lng, inputData[i].Lat]);
+            }
+
+            for (var i = 0; i < wp.length; i++) {
+                wp[i] = ol.proj.fromLonLat(wp[i]);
+            }
+
+            return wp;
+        }
+
+        function createWaypointsLayer(map) {
+            var wpline = new ol.source.Vector({
+                features: [new ol.Feature({
+                    geometry: new ol.geom.LineString(wp),
+                    name: 'ABC Line'
+                })]
+            });
+
+            // Add point feature for every coordinate
+            for (var i = 0; i < wp.length; i++) {
+                wpline.addFeature(new ol.Feature({
+                    geometry: new ol.geom.Point(wp[i])
+                }));
+            }
+
+            map.addLayer(new ol.layer.Vector({
+                source: wpline
+            }));
+        }
+
+        function createMapTilesLayer(map) {
+            var key = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
+
+            //var tileSource = new ol.source.OSM();
+            var tileSource = new ol.source.BingMaps({ key: key, imagerySet: 'Road' });
+
+            var tilesState = {
+                loaded: 0,
+                total: 0
+            };
+            tileSource.on('tileloadstart', function () {
+                tilesState.total++;
+            });
+            tileSource.on('tileloadend', function (a) {
+                tilesState.loaded++;
+                if (tilesState.loaded == tilesState.total) {
+                    console.log('all tiles loaded (' + tilesState.loaded + ')');
+                    readyToStartAnimation();
+                }
+            });
+            tileSource.on('tileloaderror', function (a, b) {
+                console.log('tile load error', a, b);
+            });
+
+            map.addLayer(new ol.layer.Tile({
+                source: tileSource
+            }));
+        }
+
+        function initializeMap() {
+            var map = new ol.Map({
+                target: document.getElementById('map'),
+                loadTilesWhileAnimating: true,
+                view: new ol.View({
+                    center: wp[0],
+                    zoom: 10,
+                    minZoom: 2,
+                    maxZoom: 19
+                }),
+                controls: []
+            });
+
+            createMapTilesLayer(map);
+            createWaypointsLayer(map);
+            var carMarker = createCarMarker(map);
+            fitMap(map);
+            var overlay = createOverlay(map);
+
+            return {
+                map: map,
+                carMarker: carMarker,
+                overlay: overlay
+            }
         }
 
     </script>
