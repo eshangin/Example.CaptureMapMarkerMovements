@@ -55,7 +55,9 @@
 
         var currentCarWaypointIndex = 0;
         var intermidiateWaypointsToOriginalDataHash = {};
-        var waypointsWithIntermidiate = calculateIntermidiatePoints();        
+        var waypointsWithIntermidiate = calculateIntermidiatePoints();
+        var isManualAnimation = false;
+        var manualAnimationTimeout = null;
 
         console.log('TOTAL WAYPOINTS', waypointsWithIntermidiate.length);
 
@@ -85,11 +87,13 @@
         }
 
         function stopAnimation() {
-            mapInfo.map.removeOverlay(mapInfo.overlay);
+            if (isManualAnimation) {
+                destroyManualAnimationTimeout();
+            }
 
-            console.log('animation complete');
-
+            mapInfo.overlay.setPosition(undefined);
             document.getElementById('completestate').innerHTML = 'yes';
+            console.log('animation complete');
         }
 
         function fitMap(map) {
@@ -302,22 +306,32 @@
 
         function initButtons() {
             var btn = document.getElementById('btn-start-animation');
-            if (btn) {                
-                btn.addEventListener('click', function () {                    
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    btn.innerText = 'Restart animation';
+                    readyToStartAnimation();
+                    currentCarWaypointIndex = 0;
+                    isManualAnimation = true;
+                    destroyManualAnimationTimeout();
                     animate();
 
                     function animate() {
-                        console.log('animate');
                         if (document.getElementById('completestate').innerHTML != 'yes') {
                             moveMarker();
 
                             var animationSpeed = document.getElementById('speed').value;
-                            setTimeout(function () {
+                            manualAnimationTimeout = setTimeout(function () {
                                 animate();
                             }, 2000 / animationSpeed);
                         }
                     }
                 });
+            }
+        }
+
+        function destroyManualAnimationTimeout() {
+            if (manualAnimationTimeout) {
+                clearTimeout(manualAnimationTimeout);
             }
         }
 
