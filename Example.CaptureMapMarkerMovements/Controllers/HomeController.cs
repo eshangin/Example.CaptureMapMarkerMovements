@@ -1,4 +1,8 @@
 ﻿using Example.CaptureMapMarkerMovements.Models;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +15,57 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
+        public ActionResult CaptureWithSelenium()
+        {
+            string videoId = Guid.NewGuid().ToString();
+            string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { videoId }, Request.Url.Scheme);
+
+            //var opts = new ChromeOptions();
+            //opts.AddArgument("headless");
+            //ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+            //service.SuppressInitialDiagnosticInformation = true;
+            //service.HideCommandPromptWindow = true;
+            using (IWebDriver driver = new FirefoxDriver())
+            {
+                //driver.Manage().Window.Size = new System.Drawing.Size(1000, 600);
+                driver.Navigate().GoToUrl(mapUrlPath);
+                new WebDriverWait(driver, TimeSpan.FromMinutes(1)).Until(web =>
+                {
+                    IWebElement element = web.FindElement(By.Id("completestate"));
+                    if (element.GetAttribute("innerHTML") == "start")
+                    {
+                        return element;
+                    }
+                    Debug.WriteLine($"map not loaded yet {DateTime.UtcNow.ToString()}");
+                    return null;
+                });
+                Debug.WriteLine("Start capture");
+
+                int captureIndex = 0;
+                Directory.CreateDirectory(Server.MapPath($"~/tmp/captures/{videoId}"));
+                new WebDriverWait(driver, TimeSpan.FromSeconds(240)).Until(web =>
+                {
+                    captureIndex++;
+                    IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                    js.ExecuteScript("moveMarker()");
+
+                    Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+                    ss.SaveAsFile(Server.MapPath($"~/tmp/captures/{videoId}/{captureIndex.ToString().PadLeft(9, '0')}.png"), ScreenshotImageFormat.Png);
+
+                    IWebElement element = web.FindElement(By.Id("completestate"));
+                    if (element.GetAttribute("innerHTML") == "yes")
+                    {
+                        Debug.WriteLine("Image capture complete");
+                        return element;
+                    }
+                    Debug.WriteLine($"map not loaded yet {DateTime.UtcNow.ToString()}");
+                    return null;
+                });                
+            }
+
+            return Content("captured");
+        }
+
         public ActionResult StartProcessing(string videoId, string data)
         {
             LogInfo(videoId, $"PROCESS {videoId}");
