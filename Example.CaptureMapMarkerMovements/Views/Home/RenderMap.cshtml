@@ -177,12 +177,11 @@
             });
 
             carMarker.setStyle(new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({ color: 'black' }),
-                    stroke: new ol.style.Stroke({
-                        color: 'white', width: 2
-                    })
+                image: new ol.style.Icon({
+                    anchor: [0.5, 10],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                    src: '/Content/img/car.jpg'
                 })
             }));
 
