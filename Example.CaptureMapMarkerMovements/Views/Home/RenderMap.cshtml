@@ -211,18 +211,28 @@
         }
 
         function createWaypointsLayer(map) {
+            var line = new ol.Feature({
+                geometry: new ol.geom.LineString(wp)
+            });
+            line.setStyle(new ol.style.Style({
+                stroke: new ol.style.Stroke({ color: '#356AA0', width: 2 })
+            }))
             var wpline = new ol.source.Vector({
-                features: [new ol.Feature({
-                    geometry: new ol.geom.LineString(wp),
-                    name: 'ABC Line'
-                })]
+                features: [line]
             });
 
             // Add point feature for every coordinate
             for (var i = 0; i < wp.length; i++) {
-                wpline.addFeature(new ol.Feature({
+                var point = new ol.Feature({
                     geometry: new ol.geom.Point(wp[i])
+                });
+                point.setStyle(new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 3,
+                        fill: new ol.style.Fill({ color: '#D01F3C' })
+                    })
                 }));
+                wpline.addFeature(point);
             }
 
             map.addLayer(new ol.layer.Vector({
