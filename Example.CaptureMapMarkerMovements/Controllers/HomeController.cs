@@ -11,15 +11,16 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult StartProcessing(string videoId)
+        public ActionResult StartProcessing(string videoId, string data)
         {
             LogInfo(videoId, $"PROCESS {videoId}");
+            System.Web.HttpContext.Current.Application[$"rawdata-{videoId}"] = data;
             string capturesPath = DoCapture(videoId);
             LogInfo(videoId, "Start video processing. Please wait...");
             string videoPath = MakeVideo(videoId, capturesPath);
             LogInfo(videoId, videoPath);
 
-            return Json(new { videoId = videoId });
+            return Json(new { videoId });
         }
 
         [HttpPost]
@@ -34,20 +35,19 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return File(videoPath, "video/mp4", "output.mp4");
         }
 
-        public ActionResult RenderMap()
+        public ActionResult RenderMap(string videoId)
         {
-            return View(GetData());
+            string rawData = string.IsNullOrWhiteSpace(videoId)
+                ? GetRawData()
+                : System.Web.HttpContext.Current.Application[$"rawdata-{videoId}"] as string ?? GetRawData();
+            var items = GetData(rawData);
+            return View(items);
         }
 
         public ActionResult Index()
         {
-            return View();
-        }
-
-        public ActionResult ViewRequestedData()
-        {
-            var model = GetData().ToList();
-            return View(model);
+            string data = GetRawData();
+            return View((object)data);
         }
 
         [HttpPost]
@@ -65,13 +65,14 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         private string MakeVideo(string videoId, string capturesPath)
         {
             string videoPath = GetVideoPath(videoId);
+            const int inputFrameRatePerSecond = 5;
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/ffmpeg.exe"))
             {
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = $"-start_number 0 -i {capturesPath}\\capture%09d.png -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
+                Arguments = $"-start_number 0 -r {inputFrameRatePerSecond} -i {capturesPath}\\capture%09d.png -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
             };
 
             try
@@ -106,7 +107,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         {
             const int captureProcessTimeoutInSeconds = 240;
             string capturesPath = Server.MapPath($"~/tmp/captures/{videoId}");
-            string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { }, Request.Url.Scheme);
+            string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { videoId }, Request.Url.Scheme);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
             {
                 UseShellExecute = false,
@@ -153,9 +154,9 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return System.Web.HttpContext.Current.Application[$"processing-{videoId}"] as string;
         }
 
-        private IEnumerable<Waypoint> GetData()
+        private string GetRawData()
         {
-            string csvData = @"
+            return @"
 302803252,446,Dodge,2,Car,,1/22/2019 20:24,3.713314243,TRUE,29.6571693,-90.768751,275
 302803253,446,Dodge,2,Car,,1/22/2019 20:24,5.637079454,TRUE,29.6571798,-90.7687768,300
 302803254,446,Dodge,2,Car,,1/22/2019 20:24,7.270042946,TRUE,29.657209,-90.7688073,323
@@ -311,9 +312,12 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 302845736,446,Dodge,2,Car,,1/22/2019 23:47,5.212061558,TRUE,29.3922051,-90.273264,34
 302845739,446,Dodge,2,Car,,1/22/2019 23:47,2.102720114,TRUE,29.3922163,-90.273245,57
 302845743,446,Dodge,2,Car,,1/22/2019 23:47,0,FALSE,29.392219,-90.2732365,66
+".Trim();
+        }
 
-";
-            var lines = csvData.Trim().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+        private IEnumerable<Waypoint> GetData(string rawCsvData)
+        {
+            var lines = rawCsvData.Trim().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
             return from l in lines
                    let items = l.Split(',')
                    select new Waypoint()
