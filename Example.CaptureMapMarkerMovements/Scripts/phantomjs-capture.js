@@ -94,7 +94,7 @@ function getArgs() {
     }
 
     if (!timeoutInSeconds) {
-        console.log('fail: processint timeout not specified');
+        console.log('fail: processing timeout not specified');
         phantom.exit();
     }
 
