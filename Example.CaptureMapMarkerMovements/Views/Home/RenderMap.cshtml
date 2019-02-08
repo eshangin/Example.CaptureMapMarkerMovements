@@ -141,7 +141,6 @@
                 var wpDistToMapDistInPercents = Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance));
 
                 // Push actual point
-                intermidiateWp.push(wp[i - 1]);
                 pushIntermidiateWaypont(intermidiateWp, wp[i - 1], inputData[i - 1]);
 
                 // Push itermidiate points
@@ -154,7 +153,6 @@
                 }
 
                 if (i == wp.length - 1) {
-                    intermidiateWp.push(wp[i]);
                     pushIntermidiateWaypont(intermidiateWp, wp[i], inputData[i]);
                 }
             }
