@@ -137,7 +137,7 @@
             var mapExtent = mapInfo.map.getView().calculateExtent(mapInfo.map.getSize());
             var mapDiagonalDistance = distanceBetweenPoints([mapExtent[0], mapExtent[1]], [mapExtent[2], mapExtent[3]]);
 
-            var dotsPerOnePercentDistance = 3;
+            var dotsPerOnePercentDistance = 1;
             for (var i = 1; i < wp.length; i++) {
                 //console.log((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance) + ' %', Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance)));
                 var wpDistToMapDistInPercents = Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance));
