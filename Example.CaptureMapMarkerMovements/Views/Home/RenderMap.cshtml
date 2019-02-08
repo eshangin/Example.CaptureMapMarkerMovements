@@ -23,9 +23,10 @@
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
 </head>
-<body>
+<body style="padding: 0; margin: 0">
 
     <div id="map" class="map" style="width: 1000px; height: 600px;"></div>
+    <div id="smallmap" style="width: 200px; height: 120px; position: absolute; top: 460px; left: 20px; box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.09);"></div>
     <div style="display: none">
         <div id="completestate">not started</div>
         <div id="input-data">@jsonData</div>
@@ -33,7 +34,7 @@
     </div>
     @if (showButtons)
     {
-    <div style="margin-top: 30px">
+    <div style="margin-top: 30px; margin-left: 30px">
         <label for="speed">
             speed:&nbsp;
             <input id="speed" type="range" min="10" max="100" step="1" value="20" />
@@ -76,6 +77,7 @@
             var text = 'Date: ' + waypointData.Date + '<br/>Speed: ' + waypointData.Speed;
             mapInfo.carMarker.getStyle().setText(createTextStyle(waypointData.DeviceName));
             mapInfo.carMarker.getGeometry().setCoordinates(waypointCoords);
+            mapInfo.smallMap.getView().fit(mapInfo.carMarker.getGeometry().getExtent());
 
             updateOverlay(mapInfo.overlay, waypointCoords, text);
 
@@ -135,7 +137,7 @@
             var mapExtent = mapInfo.map.getView().calculateExtent(mapInfo.map.getSize());
             var mapDiagonalDistance = distanceBetweenPoints([mapExtent[0], mapExtent[1]], [mapExtent[2], mapExtent[3]]);
 
-            var dotsPerOnePercentDistance = 1;
+            var dotsPerOnePercentDistance = 3;
             for (var i = 1; i < wp.length; i++) {
                 //console.log((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance) + ' %', Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance)));
                 var wpDistToMapDistInPercents = Math.ceil((distanceBetweenPoints(wp[i - 1], wp[i]) * 100 / mapDiagonalDistance));
@@ -197,13 +199,17 @@
 
             carMarker.getStyle().setText(createTextStyle(inputData[0].DeviceName));
 
-            map.addLayer(new ol.layer.Vector({
+            carLayer = new ol.layer.Vector({
                 source: new ol.source.Vector({
                     features: [carMarker]
                 })
-            }));
+            });
+            map.addLayer(carLayer);
 
-            return carMarker;
+            return {
+                carMarker: carMarker,
+                carLayer: carLayer
+            }
         }
 
         function parseWaypoints() {
@@ -244,9 +250,13 @@
                 wpline.addFeature(point);
             }
 
-            map.addLayer(new ol.layer.Vector({
+            var wpLayer = new ol.layer.Vector({
                 source: wpline
-            }));
+            });
+
+            map.addLayer(wpLayer);
+
+            return wpLayer;
         }
 
         function createMapTilesLayer(map) {
@@ -273,9 +283,13 @@
                 console.log('tile load error', a, b);
             });
 
-            map.addLayer(new ol.layer.Tile({
+            var layer = new ol.layer.Tile({
                 source: tileSource
-            }));
+            });
+
+            map.addLayer(layer);
+
+            return layer;
         }
 
         function initializeMap() {
@@ -291,16 +305,33 @@
                 controls: []
             });
 
-            createMapTilesLayer(map);
-            createWaypointsLayer(map);
-            var carMarker = createCarMarker(map);
+            var tileLayer = createMapTilesLayer(map);
+            var wpLayer = createWaypointsLayer(map);
+            var markerInfo = createCarMarker(map);
             fitMap(map);
             var overlay = createOverlay(map);
 
+            var smallMap = new ol.Map({
+                target: document.getElementById('smallmap'),
+                loadTilesWhileAnimating: true,
+                view: new ol.View({
+                    center: wp[0],
+                    zoom: 10,
+                    minZoom: 2,
+                    maxZoom: 13
+                }),
+                controls: []
+            });
+            smallMap.addLayer(tileLayer);
+            smallMap.addLayer(wpLayer);
+            smallMap.addLayer(markerInfo.carLayer);
+            smallMap.getView().fit(markerInfo.carMarker.getGeometry().getExtent());
+
             return {
                 map: map,
-                carMarker: carMarker,
-                overlay: overlay
+                carMarker: markerInfo.carMarker,
+                overlay: overlay,
+                smallMap: smallMap
             }
         }
 
