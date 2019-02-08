@@ -5,8 +5,8 @@ var appArgs = getArgs();
 var page = require("webpage").create();
 page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36';
 
-var width = 1000;
-var height = 600;
+var width = 1024;
+var height = 768;
 
 page.viewportSize = { width: width, height: height };
 
