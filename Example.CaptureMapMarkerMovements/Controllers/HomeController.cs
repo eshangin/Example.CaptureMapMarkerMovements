@@ -72,7 +72,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = $"-start_number 0 -r {inputFrameRatePerSecond} -i {capturesPath}\\capture%09d.png -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
+                Arguments = $"-start_number 0 -r {inputFrameRatePerSecond} -i {capturesPath}\\capture%09d.jpeg -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
             };
 
             try

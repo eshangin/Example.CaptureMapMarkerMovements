@@ -39,6 +39,7 @@
             $('#log').html('');
             $('#downloadVideoBlock').hide();
             enableDisableControls(true);
+            var dateStart = new Date();
             $.post("/Home/StartProcessing", {
                 videoId: videoId,
                 data: data
@@ -47,6 +48,8 @@
                 $('#downloadVideoBlock').show();
                 procComplete = true;
                 enableDisableControls(false);
+                var dateEnd = new Date();
+                console.log('Video processing took ' + Math.ceil((dateEnd - dateStart) / 1000) + ' seconds');
             });
 
             renderLog(videoId);

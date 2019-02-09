@@ -5,8 +5,8 @@ var appArgs = getArgs();
 var page = require("webpage").create();
 page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36';
 
-var width = 1000;
-var height = 600;
+var width = 1024;
+var height = 768;
 
 page.viewportSize = { width: width, height: height };
 
@@ -50,7 +50,7 @@ page.open(appArgs.mapUrl, function (status) {
                 });
                 try {
                     page.clipRect = { top: 0, left: 0, width: width, height: height };
-                    page.render(appArgs.outputPath + "/capture" + pad(frameIndex, 9) + ".png", { format: "png", quality: '30' });
+                    page.render(appArgs.outputPath + "/capture" + pad(frameIndex, 9) + ".jpeg", { format: "jpeg" });
                     console.log('Captured frame ' + frameIndex);
                     frameIndex++;
                 } catch (rendererr) {
@@ -94,7 +94,7 @@ function getArgs() {
     }
 
     if (!timeoutInSeconds) {
-        console.log('fail: processint timeout not specified');
+        console.log('fail: processing timeout not specified');
         phantom.exit();
     }
 
