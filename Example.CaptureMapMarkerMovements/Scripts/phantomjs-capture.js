@@ -50,7 +50,7 @@ page.open(appArgs.mapUrl, function (status) {
                 });
                 try {
                     page.clipRect = { top: 0, left: 0, width: width, height: height };
-                    page.render(appArgs.outputPath + "/capture" + pad(frameIndex, 9) + ".png", { format: "png", quality: '30' });
+                    page.render(appArgs.outputPath + "/capture" + pad(frameIndex, 9) + ".jpeg", { format: "jpeg" });
                     console.log('Captured frame ' + frameIndex);
                     frameIndex++;
                 } catch (rendererr) {
