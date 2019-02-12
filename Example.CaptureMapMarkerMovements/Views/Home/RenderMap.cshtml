@@ -79,7 +79,6 @@
 
             $(function () {
                 $('#btn-download').click(function () {
-                    var procComplete = false;
                     var videoId = uuidv4();
                     var data = $('#raw-data').val();
                     enableDisableControls(true);
@@ -88,28 +87,11 @@
                         videoId: videoId,
                         data: data
                     }).then(function (data) {
-                        procComplete = true;
                         enableDisableControls(false);
                         var dateEnd = new Date();
                         console.log('Video processing took ' + Math.ceil((dateEnd - dateStart) / 1000) + ' seconds');
                         downloadUrl('/Home/DownloadVideo/' + data.videoId)
                     });
-
-                    //renderLog(videoId);
-
-                    //function renderLog(videoId) {
-                    //    if (!procComplete) {
-                    //        $.post("/Home/GetLog/", { videoId: videoId }).then(function (data) {
-                    //            if (data && data.log) {
-                    //                $('#log').html(data.log);
-                    //                $('#log').scrollTop($('#log').prop("scrollHeight"));
-                    //            }
-                    //            setTimeout(function () {
-                    //                renderLog(videoId);
-                    //            }, 300);
-                    //        });
-                    //    }
-                    //}
                 });
 
                 function enableDisableControls(disable) {
