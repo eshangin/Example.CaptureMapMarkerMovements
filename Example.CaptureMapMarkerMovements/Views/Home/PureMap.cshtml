@@ -1,20 +1,15 @@
-﻿@model Example.CaptureMapMarkerMovements.Models.RenderMapViewModel
+﻿@model IEnumerable<Example.CaptureMapMarkerMovements.Models.Waypoint>
 
 @{
     ViewBag.Title = "";
     Layout = null;
-    string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Waypoints);
+    string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(Model);
     bool showButtons = Request["buttons"] == "True";
 }
 
 <!DOCTYPE html>
 <html>
 <head>
-    @if (showButtons)
-    {
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    }
     @*<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">*@
     <style type="text/css">
         .overlay {
@@ -23,8 +18,6 @@
             text-align: center;
             padding: 5px;
             margin-bottom: 15px;
-            font-size: 14px;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
     </style>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
@@ -40,24 +33,16 @@
     </div>
     @if (showButtons)
     {
-        <input type="hidden" id="raw-data" value="@Model.RawData" />
-        <div style="margin-top: 30px; margin-left: 30px">
-            <div style="margin-bottom: 10px">
-                <label for="speed" style="margin-right: 10px">
-                    speed:&nbsp;
-                    <input id="speed" type="range" min="10" max="100" step="1" value="20" />
-                </label>
-                <button type="button" id="btn-start-animation" class="btn btn-default" style="vertical-align: text-bottom">Start animation</button>
-            </div>
-            <div>
-                <button type="button" id="btn-download" class="btn btn-default">Download video</button>
-                <span id="txt-please-wait" style="display: none">please wait...</span>
-            </div>
-        </div>
-        <iframe id="invisible-frame" style="display:none;"></iframe>
+    <div style="margin-top: 30px; margin-left: 30px">
+        <label for="speed">
+            speed:&nbsp;
+            <input id="speed" type="range" min="10" max="100" step="1" value="20" />
+        </label>
+        <button type="button" id="btn-start-animation">Start animation</button>
+    </div>
     }
 
-    <script>
+    <script>        
 
         var bingMapsKey = 'AifUA41UximrujvNoJp15-yQsmBOattJxjecWXdsW4fzIDr14uBd0-xvZykxDoAq';
 
@@ -184,7 +169,7 @@
             var overlay = new ol.Overlay({
                 element: document.getElementById('overlay'),
                 positioning: 'bottom-center'
-            });
+            });            
             map.addOverlay(overlay);
             return overlay;
         }
@@ -340,65 +325,12 @@
                     }
                 });
             }
-
-            $(function () {
-                $('#btn-download').click(function () {
-                    var procComplete = false;
-                    var videoId = uuidv4();
-                    var data = $('#raw-data').val();
-                    enableDisableControls(true);
-                    var dateStart = new Date();
-                    $.post("/Home/StartProcessing", {
-                        videoId: videoId,
-                        data: data
-                    }).then(function (data) {
-                        procComplete = true;
-                        enableDisableControls(false);
-                        var dateEnd = new Date();
-                        console.log('Video processing took ' + Math.ceil((dateEnd - dateStart) / 1000) + ' seconds');
-                        downloadUrl('/Home/DownloadVideo/' + data.videoId)
-                    });
-
-                    //renderLog(videoId);
-
-                    //function renderLog(videoId) {
-                    //    if (!procComplete) {
-                    //        $.post("/Home/GetLog/", { videoId: videoId }).then(function (data) {
-                    //            if (data && data.log) {
-                    //                $('#log').html(data.log);
-                    //                $('#log').scrollTop($('#log').prop("scrollHeight"));
-                    //            }
-                    //            setTimeout(function () {
-                    //                renderLog(videoId);
-                    //            }, 300);
-                    //        });
-                    //    }
-                    //}
-                });
-
-                function enableDisableControls(disable) {
-                    $('#btn-download').prop('disabled', disable);
-                    disable ? $('#txt-please-wait').show() : $('#txt-please-wait').hide();
-                }
-            });
         }
 
         function destroyManualAnimationTimeout() {
             if (manualAnimationTimeout) {
                 clearTimeout(manualAnimationTimeout);
             }
-        }
-
-        function downloadUrl(url) {
-            var iframe = document.getElementById('invisible-frame');
-            iframe.src = url;
-        }
-
-        function uuidv4() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
         }
 
     </script>

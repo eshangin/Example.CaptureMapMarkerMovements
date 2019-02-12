@@ -41,6 +41,19 @@ namespace Example.CaptureMapMarkerMovements.Controllers
                 ? GetRawData()
                 : System.Web.HttpContext.Current.Application[$"rawdata-{videoId}"] as string ?? GetRawData();
             var items = GetData(rawData);
+            return View(new RenderMapViewModel()
+            {
+                Waypoints = items,
+                RawData = rawData
+            });
+        }
+
+        public ActionResult PureMap(string videoId)
+        {
+            string rawData = string.IsNullOrWhiteSpace(videoId)
+                ? GetRawData()
+                : System.Web.HttpContext.Current.Application[$"rawdata-{videoId}"] as string ?? GetRawData();
+            var items = GetData(rawData);
             return View(items);
         }
 
@@ -100,7 +113,7 @@ namespace Example.CaptureMapMarkerMovements.Controllers
         {
             const int captureProcessTimeoutInSeconds = 240;
             string capturesPath = Server.MapPath($"~/tmp/captures/{videoId}");
-            string mapUrlPath = Url.Action(nameof(HomeController.RenderMap), nameof(HomeController).Replace("Controller", ""), new { videoId }, Request.Url.Scheme);
+            string mapUrlPath = Url.Action(nameof(HomeController.PureMap), nameof(HomeController).Replace("Controller", ""), new { videoId }, Request.Url.Scheme);
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/phantomjs.exe"))
             {
                 UseShellExecute = false,
