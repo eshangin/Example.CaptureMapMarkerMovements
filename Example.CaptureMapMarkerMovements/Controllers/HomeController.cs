@@ -11,13 +11,13 @@ namespace Example.CaptureMapMarkerMovements.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult StartProcessing(string videoId, string data)
+        public ActionResult StartProcessing(string videoId, string data, decimal outputPts = 1)
         {
             LogInfo(videoId, $"PROCESS {videoId}");
             System.Web.HttpContext.Current.Application[$"rawdata-{videoId}"] = data;
             string capturesPath = DoCapture(videoId);
             LogInfo(videoId, "Start video processing. Please wait...");
-            string videoPath = MakeVideo(videoId, capturesPath);
+            string videoPath = MakeVideo(videoId, capturesPath, outputPts);
             LogInfo(videoId, videoPath);
 
             return Json(new { videoId });
@@ -75,17 +75,25 @@ namespace Example.CaptureMapMarkerMovements.Controllers
             return File(videoPath, "video/mp4", "output.mp4");
         }
 
-        private string MakeVideo(string videoId, string capturesPath)
+        /// <summary>
+        /// Process video from captured images
+        /// </summary>
+        /// <param name="outputPts">
+        /// Presentation timestamp which is needed to slow down or speed up video http://ffmpeg.org/ffmpeg-all.html#setpts_002c-asetpts</param>
+        /// <returns></returns>
+        private string MakeVideo(string videoId, string capturesPath, decimal outputPts = 1)
         {
+            // We should avoid dropped frames. For this we will increase output FPS as suggested here https://trac.ffmpeg.org/wiki/How%20to%20speed%20up%20/%20slow%20down%20a%20video
+            decimal outputFps = 25 / outputPts;
+
             string videoPath = GetVideoPath(videoId);
-            const int inputFrameRatePerSecond = 5;
             ProcessStartInfo info = new ProcessStartInfo(Server.MapPath("~/libs/ffmpeg.exe"))
             {
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = $"-start_number 0 -r {inputFrameRatePerSecond} -i {capturesPath}\\capture%09d.jpeg -c:v libx264 -r 25 -pix_fmt yuv420p {videoPath}",
+                Arguments = $"-start_number 0 -i {capturesPath}\\capture%09d.jpeg -c:v libx264 -r {outputFps} -vf \"setpts={outputPts}*PTS\" -pix_fmt yuv420p {videoPath}",
             };
 
             try

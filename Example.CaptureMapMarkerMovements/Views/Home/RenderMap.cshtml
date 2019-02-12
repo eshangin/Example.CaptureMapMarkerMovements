@@ -63,7 +63,6 @@
                     isManualAnimation = true;
                     destroyManualAnimationTimeout();
                     animate();
-
                     function animate() {
                         if (document.getElementById('completestate').innerHTML != 'yes') {
                             moveMarker();
@@ -79,13 +78,15 @@
 
             $(function () {
                 $('#btn-download').click(function () {
+                    var animationSpeed = document.getElementById('speed').value;
                     var videoId = uuidv4();
                     var data = $('#raw-data').val();
                     enableDisableControls(true);
                     var dateStart = new Date();
                     $.post("/Home/StartProcessing", {
                         videoId: videoId,
-                        data: data
+                        data: data,
+                        outputPts: 25 / Math.ceil(animationSpeed / 2)
                     }).then(function (data) {
                         enableDisableControls(false);
                         var dateEnd = new Date();
