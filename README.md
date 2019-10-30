@@ -1,6 +1,6 @@
 # Example.CaptureMapMarkerMovements
 
-This project uses PhantomJS, FFmpeg to capture motion of an object on a map. OpenLayer used for maps.
+This project uses PhantomJS, FFmpeg to capture motion of an object on a map and make video of this motion. OpenLayer used for maps.
 
 ## How it works
 1. /lib folder contains necessary .exe files
